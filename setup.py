@@ -13,6 +13,7 @@ setup(
         # NB: Pin these to a more specific version for tap reliability
         "singer-python==5.12.1",
         "requests",
+        "arrow"
     ],
     entry_points="""
     [console_scripts]
