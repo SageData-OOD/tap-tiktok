@@ -48,7 +48,19 @@ def load_schemas():
     return schemas
 
 
-def get_key_properties(stream_id):
+def get_attr_for_auto_inclusion(stream_name):
+    stream_id = stream_name.replace("auction_basic_", "").replace("_report", "")
+    if stream_id == "ad_id":
+        return ["campaign_id", "adgroup_id", "ad_id"]
+    elif stream_id == "adgroup_id":
+        return ["campaign_id", "adgroup_id"]
+    elif stream_id == "campaign_id":
+        return ["campaign_id"]
+    elif stream_id == "advertiser_id":
+        return []
+
+
+def get_key_properties(stream_name):
     return ["record_id"]
 
 
@@ -72,7 +84,9 @@ def build_url(path, query=""):
     return urlunparse((scheme, netloc, path, "", query, ""))
 
 
-def create_metadata_for_report(schema, key_properties):
+def create_metadata_for_report(schema, stream_name):
+    auto_inclusion_keys = get_attr_for_auto_inclusion(stream_name)
+    key_properties = get_key_properties(stream_name)
     if key_properties:
         mdata = [{"breadcrumb": [], "metadata": {"table-key-properties": key_properties, "inclusion": "available"}}]
     else:
@@ -81,10 +95,10 @@ def create_metadata_for_report(schema, key_properties):
     for key in schema.properties:
         # hence when property is object, we will only consider properties of that object without taking object itself.
         if "object" in schema.properties.get(key).type:
-            inclusion = "available" if key != "dimensions" else "automatic"
-            mdata.extend(
-                [{"breadcrumb": ["properties", key, "properties", prop], "metadata": {"inclusion": inclusion}} for prop
-                 in schema.properties.get(key).properties])
+            for prop in schema.properties.get(key).properties:
+                inclusion = "automatic" if prop in auto_inclusion_keys or key == "dimensions" else "available"
+                mdata.extend(
+                    [{"breadcrumb": ["properties", key, "properties", prop], "metadata": {"inclusion": inclusion}}])
         else:
             inclusion = "automatic" if key in key_properties else "available"
             mdata.append({"breadcrumb": ["properties", key], "metadata": {"inclusion": inclusion}})
@@ -96,7 +110,7 @@ def discover():
     raw_schemas = load_schemas()
     streams = []
     for stream_id, schema in raw_schemas.items():
-        stream_metadata = create_metadata_for_report(schema, get_key_properties(stream_id))
+        stream_metadata = create_metadata_for_report(schema, stream_id)
         key_properties = get_key_properties(stream_id)
         streams.append(
             CatalogEntry(
