@@ -130,60 +130,6 @@
             "number"
           ]
         },
-        "result": {
-          "type": [
-            "null",
-            "integer"
-          ]
-        },
-        "cost_per_result": {
-          "type": [
-            "null",
-            "number"
-          ]
-        },
-        "result_rate": {
-          "type": [
-            "null",
-            "number"
-          ]
-        },
-        "real_time_result": {
-          "type": [
-            "null",
-            "integer"
-          ]
-        },
-        "real_time_cost_per_result": {
-          "type": [
-            "null",
-            "number"
-          ]
-        },
-        "real_time_result_rate": {
-          "type": [
-            "null",
-            "number"
-          ]
-        },
-        "secondary_goal_result": {
-          "type": [
-            "null",
-            "string"
-          ]
-        },
-        "cost_per_secondary_goal_result": {
-          "type": [
-            "null",
-            "string"
-          ]
-        },
-        "secondary_goal_result_rate": {
-          "type": [
-            "null",
-            "string"
-          ]
-        },
         "frequency": {
           "type": [
             "null",
