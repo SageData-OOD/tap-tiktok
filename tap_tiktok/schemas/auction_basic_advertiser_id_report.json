@@ -4,6 +4,9 @@
     "object"
   ],
   "properties": {
+    "record_id": {
+      "type": "string"
+    },
     "dimensions": {
       "type": [
         "null",
@@ -17,10 +20,10 @@
           ],
           "format": "date-time"
         },
-        "ad_id": {
+        "advertiser_id": {
           "type": [
             "null",
-            "string"
+            "integer"
           ]
         }
       }
@@ -31,208 +34,136 @@
         "object"
       ],
       "properties": {
-        "campaign_name": {
-          "type": [
-            "null",
-            "string"
-          ]
-        },
-        "campaign_id": {
-          "type": [
-            "null",
-            "string"
-          ]
-        },
-        "adgroup_name": {
-          "type": [
-            "null",
-            "string"
-          ]
-        },
-        "placement": {
-          "type": [
-            "null",
-            "string"
-          ]
-        },
-        "adgroup_id": {
-          "type": [
-            "null",
-            "string"
-          ]
-        },
-        "ad_name": {
-          "type": [
-            "null",
-            "string"
-          ]
-        },
-        "ad_text": {
-          "type": [
-            "null",
-            "string"
-          ]
-        },
-        "tt_app_id": {
-          "type": [
-            "null",
-            "string"
-          ]
-        },
-        "tt_app_name": {
-          "type": [
-            "null",
-            "string"
-          ]
-        },
-        "mobile_app_id": {
-          "type": [
-            "null",
-            "string"
-          ]
-        },
-        "promotion_type": {
-          "type": [
-            "null",
-            "string"
-          ]
-        },
-        "dpa_target_audience_type": {
-          "type": [
-            "null",
-            "string"
-          ]
-        },
         "spend": {
           "type": [
             "null",
-            "string"
+            "number"
           ]
         },
         "cash_spend": {
           "type": [
             "null",
-            "string"
+            "number"
           ]
         },
         "voucher_spend": {
           "type": [
             "null",
-            "string"
+            "number"
           ]
         },
         "cpc": {
           "type": [
             "null",
-            "string"
+            "number"
           ]
         },
         "cpm": {
           "type": [
             "null",
-            "string"
+            "number"
           ]
         },
         "impressions": {
           "type": [
             "null",
-            "string"
+            "integer"
           ]
         },
         "clicks": {
           "type": [
             "null",
-            "string"
+            "integer"
           ]
         },
         "ctr": {
           "type": [
             "null",
-            "string"
+            "integer"
           ]
         },
         "reach": {
           "type": [
             "null",
-            "string"
+            "integer"
           ]
         },
         "cost_per_1000_reached": {
           "type": [
             "null",
-            "string"
+            "number"
           ]
         },
         "conversion": {
           "type": [
             "null",
-            "string"
+            "integer"
           ]
         },
         "cost_per_conversion": {
           "type": [
             "null",
-            "string"
+            "number"
           ]
         },
         "conversion_rate": {
           "type": [
             "null",
-            "string"
+            "number"
           ]
         },
         "real_time_conversion": {
           "type": [
             "null",
-            "string"
+            "integer"
           ]
         },
         "real_time_cost_per_conversion": {
           "type": [
             "null",
-            "string"
+            "number"
           ]
         },
         "real_time_conversion_rate": {
           "type": [
             "null",
-            "string"
+            "number"
           ]
         },
         "result": {
           "type": [
             "null",
-            "string"
+            "integer"
           ]
         },
         "cost_per_result": {
           "type": [
             "null",
-            "string"
+            "number"
           ]
         },
         "result_rate": {
           "type": [
             "null",
-            "string"
+            "number"
           ]
         },
         "real_time_result": {
           "type": [
             "null",
-            "string"
+            "integer"
           ]
         },
         "real_time_cost_per_result": {
           "type": [
             "null",
-            "string"
+            "number"
           ]
         },
         "real_time_result_rate": {
           "type": [
             "null",
-            "string"
+            "number"
           ]
         },
         "secondary_goal_result": {
@@ -256,103 +187,103 @@
         "frequency": {
           "type": [
             "null",
-            "string"
+            "number"
           ]
         },
         "video_play_actions": {
           "type": [
             "null",
-            "string"
+            "integer"
           ]
         },
         "video_watched_2s": {
           "type": [
             "null",
-            "string"
+            "integer"
           ]
         },
         "video_watched_6s": {
           "type": [
             "null",
-            "string"
+            "integer"
           ]
         },
         "average_video_play": {
           "type": [
             "null",
-            "string"
+            "number"
           ]
         },
         "average_video_play_per_user": {
           "type": [
             "null",
-            "string"
+            "number"
           ]
         },
         "video_views_p25": {
           "type": [
             "null",
-            "string"
+            "integer"
           ]
         },
         "video_views_p50": {
           "type": [
             "null",
-            "string"
+            "integer"
           ]
         },
         "video_views_p75": {
           "type": [
             "null",
-            "string"
+            "integer"
           ]
         },
         "video_views_p100": {
           "type": [
             "null",
-            "string"
+            "integer"
           ]
         },
         "profile_visits": {
           "type": [
             "null",
-            "string"
+            "integer"
           ]
         },
         "profile_visits_rate": {
           "type": [
             "null",
-            "string"
+            "number"
           ]
         },
         "likes": {
           "type": [
             "null",
-            "string"
+            "integer"
           ]
         },
         "comments": {
           "type": [
             "null",
-            "string"
+            "integer"
           ]
         },
         "shares": {
           "type": [
             "null",
-            "string"
+            "integer"
           ]
         },
         "follows": {
           "type": [
             "null",
-            "string"
+            "integer"
           ]
         },
         "clicks_on_music_disc": {
           "type": [
             "null",
-            "string"
+            "integer"
           ]
         }
       }

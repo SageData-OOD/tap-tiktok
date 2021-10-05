@@ -14,7 +14,7 @@ from six.moves.urllib.parse import urlencode, urlunparse
 
 REQUIRED_CONFIG_KEYS = ["advertiser_id", "report_type", "start_date", "token"]
 LOGGER = singer.get_logger()
-HOST = "ads.tiktok.com"
+HOST = "business-api.tiktok.com"
 PATH = "/open_api/v1.2/reports/integrated/get"
 
 
@@ -48,6 +48,18 @@ def load_schemas():
     return schemas
 
 
+def get_key_properties(stream_id):
+    return ["record_id"]
+
+
+def get_selected_metrics(stream):
+    list_metrics = list()
+    for md in stream.metadata:
+        if "metrics" in md["breadcrumb"] and md["metadata"].get("selected", False):
+            list_metrics.append(md["breadcrumb"][-1])
+    return list_metrics
+
+
 def build_url(path, query=""):
     # type: (str, str) -> str
     """
@@ -60,8 +72,12 @@ def build_url(path, query=""):
     return urlunparse((scheme, netloc, path, "", query, ""))
 
 
-def create_metadata_for_report(schema):
-    mdata = [{"breadcrumb": [], "metadata": {"inclusion": "available"}}]
+def create_metadata_for_report(schema, key_properties):
+    if key_properties:
+        mdata = [{"breadcrumb": [], "metadata": {"table-key-properties": key_properties, "inclusion": "available"}}]
+    else:
+        mdata = [{"breadcrumb": [], "metadata": {"inclusion": "available"}}]
+
     for key in schema.properties:
         # hence when property is object, we will only consider properties of that object without taking object itself.
         if "object" in schema.properties.get(key).type:
@@ -70,7 +86,8 @@ def create_metadata_for_report(schema):
                 [{"breadcrumb": ["properties", key, "properties", prop], "metadata": {"inclusion": inclusion}} for prop
                  in schema.properties.get(key).properties])
         else:
-            mdata.append({"breadcrumb": ["properties", key], "metadata": {"inclusion": "available"}})
+            inclusion = "automatic" if key in key_properties else "available"
+            mdata.append({"breadcrumb": ["properties", key], "metadata": {"inclusion": inclusion}})
 
     return mdata
 
@@ -79,8 +96,8 @@ def discover():
     raw_schemas = load_schemas()
     streams = []
     for stream_id, schema in raw_schemas.items():
-        stream_metadata = create_metadata_for_report(schema)
-        key_properties = []
+        stream_metadata = create_metadata_for_report(schema, get_key_properties(stream_id))
+        key_properties = get_key_properties(stream_id)
         streams.append(
             CatalogEntry(
                 tap_stream_id=stream_id,
@@ -126,6 +143,24 @@ def request_data(attr, headers):
     return all_items
 
 
+def _to_str(_list):
+    return [str(i) for i in _list]
+
+
+def generate_id(row, stream_id, advertiser_id):
+    stat_time_day = row["dimensions"]["stat_time_day"].split(" ")[0]
+    if stream_id == "ad_id":
+        return "#".join(_to_str([stat_time_day, advertiser_id, row["metrics"]["campaign_id"],
+                                 row["metrics"]["adgroup_id"], row["dimensions"]["ad_id"]]))
+    elif stream_id == "adgroup_id":
+        return "#".join(_to_str([stat_time_day, advertiser_id, row["metrics"]["campaign_id"],
+                                 row["dimensions"]["adgroup_id"]]))
+    elif stream_id == "campaign_id":
+        return "#".join(_to_str([stat_time_day, advertiser_id, row["dimensions"]["campaign_id"]]))
+    elif stream_id == "advertiser_id":
+        return "#".join(_to_str([stat_time_day, advertiser_id]))
+
+
 def sync(config, state, catalog):
     """ Sync data from tap source """
     # Loop over selected streams in catalog
@@ -141,13 +176,14 @@ def sync(config, state, catalog):
             schema=schema,
             key_properties=stream.key_properties,
         )
-
+        stream_id = stream.tap_stream_id.replace("auction_basic_", "").replace("_report", "")
         headers = {"Access-Token": config["token"]}
         attr = {
             "advertiser_id": config["advertiser_id"],
             "report_type": config["report_type"],
-            "data_level": "AUCTION_" + stream.tap_stream_id.replace("_id_report", "").upper(),
-            "dimensions": [stream.tap_stream_id.replace("_report", ""), "stat_time_day"],
+            "data_level": "AUCTION_" + stream.tap_stream_id.replace("auction_basic_", "").replace("_id_report", "").upper(),
+            "dimensions": [stream_id, "stat_time_day"],
+            "metrics": get_selected_metrics(stream),
             "lifetime": False,
             "page_size": 200
         }
@@ -157,12 +193,14 @@ def sync(config, state, catalog):
 
         while True:
             attr["start_date"] = attr["end_date"] = start_date  # as both date are in closed interval
-            LOGGER.info("Querying Date --> %s", attr["start_date"])
+            LOGGER.info("Querying Date -------------->  %s  <--------------", attr["start_date"])
             tap_data = request_data(attr, headers)
 
             bookmark = attr["start_date"]
             with singer.metrics.record_counter(stream.tap_stream_id) as counter:
                 for row in tap_data:
+                    row["record_id"] = generate_id(row.copy(), stream_id, config["advertiser_id"])
+
                     # Type Conversation and Transformation
                     transformed_data = transform(row, schema, metadata=mdata)
 
