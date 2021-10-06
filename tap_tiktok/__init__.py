@@ -67,8 +67,9 @@ def get_key_properties(stream_name):
 def get_selected_metrics(stream):
     list_metrics = list()
     for md in stream.metadata:
-        if "metrics" in md["breadcrumb"] and md["metadata"].get("selected", False):
-            list_metrics.append(md["breadcrumb"][-1])
+        if "metrics" in md["breadcrumb"]:
+            if md["metadata"].get("selected", False) or md["metadata"].get("inclusion") == "automatic":
+                list_metrics.append(md["breadcrumb"][-1])
     return list_metrics
 
 

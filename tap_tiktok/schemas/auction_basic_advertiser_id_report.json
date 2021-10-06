@@ -79,7 +79,7 @@
         "ctr": {
           "type": [
             "null",
-            "integer"
+            "number"
           ]
         },
         "reach": {
