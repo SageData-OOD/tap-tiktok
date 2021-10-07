@@ -12,7 +12,7 @@ from singer.transform import transform
 from six import string_types
 from six.moves.urllib.parse import urlencode, urlunparse
 
-REQUIRED_CONFIG_KEYS = ["advertiser_id", "report_type", "start_date", "token"]
+REQUIRED_CONFIG_KEYS = ["advertiser_id", "start_date", "token"]
 LOGGER = singer.get_logger()
 HOST = "business-api.tiktok.com"
 PATH = "/open_api/v1.2/reports/integrated/get"
@@ -48,29 +48,87 @@ def load_schemas():
     return schemas
 
 
-def get_attr_for_auto_inclusion(stream_name):
-    stream_id = stream_name.replace("auction_basic_", "").replace("_report", "")
-    if stream_id == "ad_id":
-        return ["campaign_id", "adgroup_id", "ad_id"]
-    elif stream_id == "adgroup_id":
-        return ["campaign_id", "adgroup_id"]
-    elif stream_id == "campaign_id":
-        return ["campaign_id"]
-    elif stream_id == "advertiser_id":
+def _extract_stream_id(tap_stream_id):
+    """
+    E.x. auction_audience_ad_id_report
+         -> ad_id
+    """
+    stream_id = tap_stream_id.replace("auction_basic_", "").replace("auction_audience_", ""). \
+        replace("auction_playable_", "").replace("_report", "")
+    return stream_id
+
+
+def _get_report_type(tap_stream_id):
+    """
+     E.x. auction_audience_ad_id_report
+          -> AUDIENCE
+     """
+    if "audience" in tap_stream_id:
+        return "AUDIENCE"
+    elif "playable" in tap_stream_id:
+        return "PLAYABLE_MATERIAL"
+    else:
+        return "BASIC"
+
+
+def get_attr_for_auto_inclusion(tap_stream_id):
+    """
+    Some Dimension attributes and attributes used in Pk(record_id) for a stream will be in auto-inclusion
+    """
+    stream_id = _extract_stream_id(tap_stream_id)
+    auto_inclusion = {
+        "ad_id": ["stat_time_day", "campaign_id", "adgroup_id", "ad_id"],
+        "adgroup_id": ["stat_time_day", "campaign_id", "adgroup_id"],
+        "campaign_id": ["stat_time_day", "campaign_id"],
+        "advertiser_id": ["stat_time_day", "advertiser_id"],
+        "playable_id": ["stat_time_day", "playable_id", "country_code"]
+    }
+    return auto_inclusion.get(stream_id, [])
+
+
+def get_attrs_for_exclusion(attr):
+    """
+    Audience reports only allows to select 1 audience_dimensions at a time
+    [ exception: gender & age allowed together ]
+    hence, other should be excluded
+    """
+    audience_dimensions = ["gender", "age", "country_code", "ac", "language", "platform", "placement"]
+    if attr in ["age", "gender"]:
+        audience_dimensions.remove("age")
+        audience_dimensions.remove("gender")
+    elif attr in audience_dimensions:
+        audience_dimensions.remove(attr)
+    else:
         return []
+
+    return [["properties", "dimensions", "properties", p] for p in audience_dimensions]
 
 
 def get_key_properties(stream_name):
     return ["record_id"]
 
 
-def get_selected_metrics(stream):
-    list_metrics = list()
+def get_data_level(stream_id):
+    """
+    E.x. stream_id = "campaign_id"
+         -> AUCTION_CAMPAIGN
+    """
+    return "AUCTION_" + stream_id.replace("_id", "").upper()
+
+
+def get_selected_attrs(stream, property_name):
+    """
+    property_name = metrics
+    -> return list of selected "metrics"
+    property_name = dimension
+    -> return list of selected "dimension"
+    """
+    list_attrs = list()
     for md in stream.metadata:
-        if "metrics" in md["breadcrumb"]:
+        if property_name in md["breadcrumb"]:
             if md["metadata"].get("selected", False) or md["metadata"].get("inclusion") == "automatic":
-                list_metrics.append(md["breadcrumb"][-1])
-    return list_metrics
+                list_attrs.append(md["breadcrumb"][-1])
+    return list_attrs
 
 
 def build_url(path, query=""):
@@ -85,21 +143,40 @@ def build_url(path, query=""):
     return urlunparse((scheme, netloc, path, "", query, ""))
 
 
-def create_metadata_for_report(schema, stream_name):
-    auto_inclusion_keys = get_attr_for_auto_inclusion(stream_name)
-    key_properties = get_key_properties(stream_name)
+def create_metadata_for_report(schema, tap_stream_id):
+    auto_inclusion_keys = get_attr_for_auto_inclusion(tap_stream_id)
+    key_properties = get_key_properties(tap_stream_id)
     if key_properties:
-        mdata = [{"breadcrumb": [], "metadata": {"table-key-properties": key_properties, "inclusion": "available"}}]
+        mdata = [{"breadcrumb": [], "metadata": {"table-key-properties": key_properties, "inclusion": "available",
+                                                 "forced-replication-method": "INCREMENTAL"}}]
     else:
-        mdata = [{"breadcrumb": [], "metadata": {"inclusion": "available"}}]
+        mdata = [{"breadcrumb": [], "metadata": {"inclusion": "available", "forced-replication-method": "INCREMENTAL"}}]
 
     for key in schema.properties:
         # hence when property is object, we will only consider properties of that object without taking object itself.
+        # here: dimension & metrics
         if "object" in schema.properties.get(key).type:
-            for prop in schema.properties.get(key).properties:
-                inclusion = "automatic" if prop in auto_inclusion_keys or key == "dimensions" else "available"
-                mdata.extend(
-                    [{"breadcrumb": ["properties", key, "properties", prop], "metadata": {"inclusion": inclusion}}])
+            # For all audience report dimensions
+            if "audience" in tap_stream_id and key == "dimensions":
+                for prop in schema.properties.get(key).properties:
+                    field_exclusions = get_attrs_for_exclusion(prop)
+                    inclusion = "automatic" if prop in auto_inclusion_keys else "available"
+                    prop_metadata = {"inclusion": inclusion, "fieldExclusions": field_exclusions}
+
+                    # Making country_code pre-selected
+                    if prop == "country_code": prop_metadata["selected"] = True
+
+                    mdata.extend([{
+                        "breadcrumb": ["properties", key, "properties", prop],
+                        "metadata": prop_metadata
+                    }])
+            else:
+                for prop in schema.properties.get(key).properties:
+                    inclusion = "automatic" if prop in auto_inclusion_keys else "available"
+                    mdata.extend([{
+                        "breadcrumb": ["properties", key, "properties", prop],
+                        "metadata": {"inclusion": inclusion}
+                    }])
         else:
             inclusion = "automatic" if key in key_properties else "available"
             mdata.append({"breadcrumb": ["properties", key], "metadata": {"inclusion": inclusion}})
@@ -162,18 +239,29 @@ def _to_str(_list):
     return [str(i) for i in _list]
 
 
-def generate_id(row, stream_id, advertiser_id):
+def generate_id(row, stream_id, report_type, advertiser_id):
     stat_time_day = row["dimensions"]["stat_time_day"].split(" ")[0]
+    id_attrs = list()
     if stream_id == "ad_id":
-        return "#".join(_to_str([stat_time_day, advertiser_id, row["metrics"]["campaign_id"],
-                                 row["metrics"]["adgroup_id"], row["dimensions"]["ad_id"]]))
+        id_attrs = [stat_time_day, advertiser_id, row["metrics"]["campaign_id"],
+                    row["metrics"]["adgroup_id"], row["dimensions"]["ad_id"]]
     elif stream_id == "adgroup_id":
-        return "#".join(_to_str([stat_time_day, advertiser_id, row["metrics"]["campaign_id"],
-                                 row["dimensions"]["adgroup_id"]]))
+        id_attrs = [stat_time_day, advertiser_id, row["metrics"]["campaign_id"],
+                    row["dimensions"]["adgroup_id"]]
     elif stream_id == "campaign_id":
-        return "#".join(_to_str([stat_time_day, advertiser_id, row["dimensions"]["campaign_id"]]))
+        id_attrs = [stat_time_day, advertiser_id, row["dimensions"]["campaign_id"]]
     elif stream_id == "advertiser_id":
-        return "#".join(_to_str([stat_time_day, advertiser_id]))
+        id_attrs = [stat_time_day, advertiser_id]
+    elif stream_id == "playable_id":
+        id_attrs = [stat_time_day, advertiser_id, row["dimensions"]["playable_id"], row["dimensions"]["country_code"]]
+
+    # For Audience dimensions
+    if report_type == "AUDIENCE":
+        for key, val in row["dimensions"].items():
+            if key != "stat_time_day" and "id" not in key:
+                id_attrs.append(val)
+
+    return "#".join(_to_str(id_attrs))
 
 
 def sync(config, state, catalog):
@@ -191,17 +279,20 @@ def sync(config, state, catalog):
             schema=schema,
             key_properties=stream.key_properties,
         )
-        stream_id = stream.tap_stream_id.replace("auction_basic_", "").replace("_report", "")
+        stream_id = _extract_stream_id(stream.tap_stream_id)
         headers = {"Access-Token": config["token"]}
         attr = {
             "advertiser_id": config["advertiser_id"],
-            "report_type": config["report_type"],
-            "data_level": "AUCTION_" + stream.tap_stream_id.replace("auction_basic_", "").replace("_id_report", "").upper(),
-            "dimensions": [stream_id, "stat_time_day"],
-            "metrics": get_selected_metrics(stream),
+            "report_type": _get_report_type(stream.tap_stream_id),
+            "dimensions": get_selected_attrs(stream, "dimensions"),
+            "metrics": get_selected_attrs(stream, "metrics"),
             "lifetime": False,
             "page_size": 200
         }
+
+        # playable_id report not required "data_level" attribute in request params
+        if stream_id != "playable_id":
+            attr["data_level"] = get_data_level(stream_id)
 
         start_date = singer.get_bookmark(state, stream.tap_stream_id, bookmark_column).split(" ")[0] \
             if state.get("bookmarks", {}).get(stream.tap_stream_id) else config["start_date"]
@@ -211,10 +302,15 @@ def sync(config, state, catalog):
             LOGGER.info("Querying Date -------------->  %s  <--------------", attr["start_date"])
             tap_data = request_data(attr, headers)
 
+            # "placement" is renamed with "placement_id" in api response, hence change it back to "placement".
+            if "placement" in attr["dimensions"]:
+                for row in tap_data:
+                    row["dimensions"]["placement"] = row["dimensions"].pop("placement_id")
+
             bookmark = attr["start_date"]
             with singer.metrics.record_counter(stream.tap_stream_id) as counter:
                 for row in tap_data:
-                    row["record_id"] = generate_id(row.copy(), stream_id, config["advertiser_id"])
+                    row["record_id"] = generate_id(row, stream_id, attr["report_type"], config["advertiser_id"])
 
                     # Type Conversation and Transformation
                     transformed_data = transform(row, schema, metadata=mdata)

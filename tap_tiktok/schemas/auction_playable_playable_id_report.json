@@ -1,0 +1,147 @@
+{
+  "type": [
+    "null",
+    "object"
+  ],
+  "properties": {
+    "record_id": {
+      "type": "string"
+    },
+    "dimensions": {
+      "type": [
+        "null",
+        "object"
+      ],
+      "properties": {
+        "playable_id": {
+          "type": [
+            "null",
+            "integer"
+          ]
+        },
+        "country_code": {
+          "type": [
+            "null",
+            "string"
+          ]
+        }
+      }
+    },
+    "metrics": {
+      "type": [
+        "null",
+        "object"
+      ],
+      "properties": {
+        "playable_id": {
+          "type": [
+            "null",
+            "integer"
+          ]
+        },
+        "playable_name": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "playable_url": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "preview_url": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "create_time": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "modify_time": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "playable_status": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "orientation": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "country": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "associated_adgroup_count": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "spend": {
+          "type": [
+            "null",
+            "number"
+          ]
+        },
+        "cpm": {
+          "type": [
+            "null",
+            "number"
+          ]
+        },
+        "impressions": {
+          "type": [
+            "null",
+            "integer"
+          ]
+        },
+        "clicks": {
+          "type": [
+            "null",
+            "integer"
+          ]
+        },
+        "ctr": {
+          "type": [
+            "null",
+            "number"
+          ]
+        },
+        "conversion": {
+          "type": [
+            "null",
+            "integer"
+          ]
+        },
+        "cost_per_conversion": {
+          "type": [
+            "null",
+            "number"
+          ]
+        },
+        "conversion_rate": {
+          "type": [
+            "null",
+            "number"
+          ]
+        }
+      }
+    }
+  }
+}

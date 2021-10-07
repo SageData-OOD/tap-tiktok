@@ -1,0 +1,190 @@
+{
+  "type": [
+    "null",
+    "object"
+  ],
+  "properties": {
+    "record_id": {
+      "type": "string"
+    },
+    "dimensions": {
+      "type": [
+        "null",
+        "object"
+      ],
+      "properties": {
+        "stat_time_day": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "format": "date-time"
+        },
+        "advertiser_id": {
+          "type": [
+            "null",
+            "integer"
+          ]
+        },
+        "gender": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "age": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "country_code": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "ac": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "language": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "platform": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "placement": {
+          "type": [
+            "null",
+            "string"
+          ]
+        }
+      }
+    },
+    "metrics": {
+      "type": [
+        "null",
+        "object"
+      ],
+      "properties": {
+        "spend": {
+          "type": [
+            "null",
+            "number"
+          ]
+        },
+        "cpc": {
+          "type": [
+            "null",
+            "number"
+          ]
+        },
+        "cpm": {
+          "type": [
+            "null",
+            "number"
+          ]
+        },
+        "impressions": {
+          "type": [
+            "null",
+            "integer"
+          ]
+        },
+        "clicks": {
+          "type": [
+            "null",
+            "integer"
+          ]
+        },
+        "ctr": {
+          "type": [
+            "null",
+            "number"
+          ]
+        },
+        "conversion": {
+          "type": [
+            "null",
+            "integer"
+          ]
+        },
+        "cost_per_conversion": {
+          "type": [
+            "null",
+            "number"
+          ]
+        },
+        "conversion_rate": {
+          "type": [
+            "null",
+            "number"
+          ]
+        },
+        "real_time_conversion": {
+          "type": [
+            "null",
+            "integer"
+          ]
+        },
+        "real_time_cost_per_conversion": {
+          "type": [
+            "null",
+            "number"
+          ]
+        },
+        "real_time_conversion_rate": {
+          "type": [
+            "null",
+            "number"
+          ]
+        },
+        "result": {
+          "type": [
+            "null",
+            "integer"
+          ]
+        },
+        "cost_per_result": {
+          "type": [
+            "null",
+            "number"
+          ]
+        },
+        "result_rate": {
+          "type": [
+            "null",
+            "number"
+          ]
+        },
+        "real_time_result": {
+          "type": [
+            "null",
+            "integer"
+          ]
+        },
+        "real_time_cost_per_result": {
+          "type": [
+            "null",
+            "number"
+          ]
+        },
+        "real_time_result_rate": {
+          "type": [
+            "null",
+            "number"
+          ]
+        }
+      }
+    }
+  }
+}
