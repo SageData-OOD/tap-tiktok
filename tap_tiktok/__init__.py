@@ -128,6 +128,10 @@ def get_selected_attrs(stream, property_name):
         if property_name in md["breadcrumb"]:
             if md["metadata"].get("selected", False) or md["metadata"].get("inclusion") == "automatic":
                 list_attrs.append(md["breadcrumb"][-1])
+
+    # Make metrics ["spend"] as default selected if no metrics is selected for a stream.
+    if property_name == "metrics" and not list_attrs:
+        list_attrs = ["spend"]
     return list_attrs
 
 
