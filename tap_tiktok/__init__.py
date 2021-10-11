@@ -152,9 +152,11 @@ def create_metadata_for_report(schema, tap_stream_id):
     key_properties = get_key_properties(tap_stream_id)
     if key_properties:
         mdata = [{"breadcrumb": [], "metadata": {"table-key-properties": key_properties, "inclusion": "available",
-                                                 "forced-replication-method": "INCREMENTAL"}}]
+                                                 "forced-replication-method": "INCREMENTAL",
+                                                 "valid-replication-keys": ["stat_time_day"]}}]
     else:
-        mdata = [{"breadcrumb": [], "metadata": {"inclusion": "available", "forced-replication-method": "INCREMENTAL"}}]
+        mdata = [{"breadcrumb": [], "metadata": {"inclusion": "available", "forced-replication-method": "INCREMENTAL",
+                                                 "valid-replication-keys": ["stat_time_day"]}}]
 
     for key in schema.properties:
         # hence when property is object, we will only consider properties of that object without taking object itself.
