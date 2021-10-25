@@ -326,8 +326,10 @@ def sync(config, state, catalog):
                     counter.increment()
                     bookmark = max([bookmark, row["dimensions"][bookmark_column]])
 
-            state = singer.write_bookmark(state, stream.tap_stream_id, bookmark_column, bookmark)
-            singer.write_state(state)
+            # Print state only if there is some data available
+            if len(tap_data):
+                state = singer.write_bookmark(state, stream.tap_stream_id, bookmark_column, bookmark)
+                singer.write_state(state)
 
             if start_date < str(arrow.utcnow().date()):
                 start_date = str(arrow.get(start_date).shift(days=1).date())
