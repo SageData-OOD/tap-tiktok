@@ -9,6 +9,7 @@ from singer import utils, metadata
 from singer.catalog import Catalog, CatalogEntry
 from singer.schema import Schema
 from singer.transform import transform
+from datetime import datetime, timedelta
 from six import string_types
 from six.moves.urllib.parse import urlencode, urlunparse
 
@@ -270,6 +271,22 @@ def generate_id(row, stream_id, report_type, advertiser_id):
     return "#".join(_to_str(id_attrs))
 
 
+def get_valid_start_date(date_to_poll):
+    """
+    fix for data freshness
+    e.g. Sunday's data is available at 3 AM UTC on Monday
+    If integration is set to sync at 1AM then a problem occurs
+    """
+
+    utcnow = datetime.utcnow()
+    date_to_poll = datetime.strptime(date_to_poll, "%Y-%m-%d")
+
+    if date_to_poll >= utcnow - timedelta(days=3):
+        date_to_poll = utcnow - timedelta(days=4)
+
+    return date_to_poll.strftime("%Y-%m-%d")
+
+
 def sync(config, state, catalog):
     """ Sync data from tap source """
     # Loop over selected streams in catalog
@@ -302,6 +319,8 @@ def sync(config, state, catalog):
 
         start_date = singer.get_bookmark(state, stream.tap_stream_id, bookmark_column).split(" ")[0] \
             if state.get("bookmarks", {}).get(stream.tap_stream_id) else config["start_date"]
+
+        start_date = get_valid_start_date(start_date)
 
         while True:
             attr["start_date"] = attr["end_date"] = start_date  # as both date are in closed interval
