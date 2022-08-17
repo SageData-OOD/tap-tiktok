@@ -23,7 +23,7 @@
         "advertiser_id": {
           "type": [
             "null",
-            "string"
+            "integer"
           ]
         }
       }
