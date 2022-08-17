@@ -21,7 +21,7 @@
         "ad_id": {
           "type": [
             "null",
-            "integer"
+            "string"
           ]
         }
       }
@@ -41,7 +41,7 @@
         "campaign_id": {
           "type": [
             "null",
-            "integer"
+            "string"
           ]
         },
         "adgroup_name": {
@@ -50,7 +50,7 @@
             "string"
           ]
         },
-        "placement": {
+        "placement_type": {
           "type": [
             "null",
             "string"
@@ -59,7 +59,7 @@
         "adgroup_id": {
           "type": [
             "null",
-            "integer"
+            "string"
           ]
         },
         "ad_name": {

@@ -23,7 +23,7 @@
         "campaign_id": {
           "type": [
             "null",
-            "integer"
+            "string"
           ]
         }
       }
