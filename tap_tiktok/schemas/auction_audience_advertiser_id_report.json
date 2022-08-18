@@ -183,6 +183,12 @@
             "null",
             "number"
           ]
+        },
+        "currency": {
+          "type": [
+            "null",
+            "string"
+          ]
         }
       }
     }

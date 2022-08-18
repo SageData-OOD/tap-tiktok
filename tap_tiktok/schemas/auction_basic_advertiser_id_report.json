@@ -136,6 +136,12 @@
             "number"
           ]
         },
+        "currency": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
         "video_play_actions": {
           "type": [
             "null",

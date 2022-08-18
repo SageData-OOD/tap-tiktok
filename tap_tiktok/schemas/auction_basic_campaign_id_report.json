@@ -40,6 +40,12 @@
             "string"
           ]
         },
+        "objective_type": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
         "spend": {
           "type": [
             "null",
@@ -182,6 +188,12 @@
           "type": [
             "null",
             "number"
+          ]
+        },
+        "currency": {
+          "type": [
+            "null",
+            "string"
           ]
         },
         "video_play_actions": {
