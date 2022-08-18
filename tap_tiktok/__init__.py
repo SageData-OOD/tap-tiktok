@@ -17,7 +17,7 @@ REQUIRED_CONFIG_KEYS = ["advertiser_id", "start_date", "token"]
 DEFAULT_CONVERSION_WINDOW = 14
 LOGGER = singer.get_logger()
 HOST = "business-api.tiktok.com"
-PATH = "/open_api/v1.2/reports/integrated/get"
+PATH = "/open_api/v1.3/report/integrated/get"
 
 
 class TiktokError(Exception):
@@ -211,7 +211,7 @@ def discover():
 
 
 @backoff.on_exception(backoff.expo, TiktokError, max_tries=5, giveup=giveup, factor=2)
-@utils.ratelimit(10, 1)
+@utils.ratelimit(1, 1)
 def make_request(url, headers):
     response = requests.get(url, headers=headers)
     code = response.json().get("code")
@@ -310,8 +310,8 @@ def sync(config, state, catalog):
             "report_type": _get_report_type(stream.tap_stream_id),
             "dimensions": get_selected_attrs(stream, "dimensions"),
             "metrics": get_selected_attrs(stream, "metrics"),
-            "lifetime": False,
-            "page_size": 200
+            "query_mode": "CHUNK",
+            # "page_size": 200,
         }
 
         # playable_id report not required "data_level" attribute in request params
